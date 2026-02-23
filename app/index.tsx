@@ -3,7 +3,14 @@ import { PermissionsAndroid, Platform, StyleSheet, Text, TextInput, TouchableOpa
 import base64 from 'react-native-base64';
 import { BleManager, Device } from 'react-native-ble-plx';
 
-const bleManager = new BleManager();
+let bleManager: BleManager | null = null;
+try {
+  if (Platform.OS !== 'web') {
+    bleManager = new BleManager();
+  }
+} catch (e) {
+  console.warn("BleManager initialization failed. If you are using Expo Go, BLE is not supported.");
+}
 const SERVICE_UUID = '0000ffe0-0000-1000-8000-00805f9b34fb';
 const CHARACTERISTIC_UUID = '0000ffe1-0000-1000-8000-00805f9b34fb';
 
@@ -33,6 +40,11 @@ export default function HomeScreen() {
   };
 
   const scanAndConnect = () => {
+    if (!bleManager) {
+      setConnectionStatus('BLE not supported (Requires custom dev client, not Expo Go)');
+      return;
+    }
+
     setConnectionStatus('Scanning...');
     bleManager.startDeviceScan(null, null, async (error, scannedDevice) => {
       if (error) {
@@ -41,7 +53,7 @@ export default function HomeScreen() {
         return;
       }
       
-      if (scannedDevice && scannedDevice.name && (scannedDevice.name.includes('HM') || scannedDevice.name.includes('BT'))) {
+      if (scannedDevice && scannedDevice.name && (scannedDevice.name.includes('HM') || scannedDevice.name.includes('BT') || scannedDevice.name.includes('Bluedroid'))) {
         bleManager.stopDeviceScan();
         setConnectionStatus('Connecting...');
         
@@ -87,7 +99,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Braille Smart Glove</Text>
+      <Text style={styles.title}>Braille Glove</Text>
       <Text style={styles.status}>Status: {connectionStatus}</Text>
 
       <TouchableOpacity style={styles.button} onPress={scanAndConnect}>

@@ -19,7 +19,7 @@ import base64 from 'react-native-base64';
 import { BleManager, Device } from 'react-native-ble-plx';
 import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
 
-const { width } = Dimensions.get('window');
+// const { width } = Dimensions.get('window');
 
 let bleManager: BleManager | null = null;
 try {

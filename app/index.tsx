@@ -13,13 +13,14 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  useColorScheme
 } from 'react-native';
 import base64 from 'react-native-base64';
 import { BleManager, Device } from 'react-native-ble-plx';
 import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
 
-// const { width } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 let bleManager: BleManager | null = null;
 try {
@@ -34,6 +35,19 @@ const SERVICE_UUID = '0000ffe0-0000-1000-8000-00805f9b34fb';
 const CHARACTERISTIC_UUID = '0000ffe1-0000-1000-8000-00805f9b34fb';
 
 export default function HomeScreen() {
+  const systemColorScheme = useColorScheme();
+  const [theme, setTheme] = useState<'light' | 'dark'>(systemColorScheme === 'dark' ? 'dark' : 'light');
+
+  useEffect(() => {
+    if (systemColorScheme) {
+      setTheme(systemColorScheme === 'dark' ? 'dark' : 'light');
+    }
+  }, [systemColorScheme]);
+
+  const isDark = theme === 'dark';
+
+  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+
   const [scannedDevices, setScannedDevices] = useState<Device[]>([]);
   const [device, setDevice] = useState<Device | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -168,17 +182,17 @@ export default function HomeScreen() {
   const renderDeviceItem = ({ item }: { item: Device }) => (
     <Animated.View entering={FadeInDown} layout={Layout.springify()}>
       <TouchableOpacity 
-        style={styles.deviceCard} 
+        style={[styles.deviceCard, isDark && darkStyles.deviceCard]} 
         onPress={() => connectToDevice(item)}
       >
         <View style={styles.deviceInfo}>
-          <Ionicons name="bluetooth" size={24} color="#007BFF" />
+          <Ionicons name="bluetooth" size={24} color={isDark ? "#66B2FF" : "#007BFF"} />
           <View style={{ marginLeft: 12 }}>
-            <Text style={styles.deviceName}>{item.name || 'Unknown Device'}</Text>
-            <Text style={styles.deviceId}>{item.id}</Text>
+            <Text style={[styles.deviceName, isDark && darkStyles.deviceName]}>{item.name || 'Unknown Device'}</Text>
+            <Text style={[styles.deviceId, isDark && darkStyles.deviceId]}>{item.id}</Text>
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={20} color="#ccc" />
+        <Ionicons name="chevron-forward" size={20} color={isDark ? "#555" : "#ccc"} />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -186,25 +200,39 @@ export default function HomeScreen() {
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={[styles.container, isDark && darkStyles.container]}
     >
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       
       <View style={styles.header}>
-        <Animated.Text entering={FadeInDown.delay(100)} style={styles.title}>
-          BrailleGlove
-        </Animated.Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Animated.Text entering={FadeInDown.delay(100)} style={[styles.title, isDark && darkStyles.title]}>
+            BrailleGlove
+          </Animated.Text>
+          <TouchableOpacity onPress={toggleTheme}>
+            <Ionicons name={isDark ? "sunny" : "moon"} size={26} color={isDark ? "#FFD700" : "#1A1A1A"} />
+          </TouchableOpacity>
+        </View>
         <Animated.View entering={FadeIn.delay(300)} style={[
           styles.statusBadge, 
-          { backgroundColor: device ? '#E8F5E9' : '#F5F5F5' }
+          { backgroundColor: device 
+              ? (isDark ? '#1B5E20' : '#E8F5E9') 
+              : (isDark ? '#333333' : '#F5F5F5') 
+          }
         ]}>
           <View style={[
             styles.statusDot, 
-            { backgroundColor: device ? '#4CAF50' : '#9E9E9E' }
+            { backgroundColor: device 
+                ? '#4CAF50'
+                : (isDark ? '#757575' : '#9E9E9E') 
+            }
           ]} />
           <Text style={[
             styles.statusText, 
-            { color: device ? '#2E7D32' : '#616161' }
+            { color: device 
+                ? (isDark ? '#C8E6C9' : '#2E7D32') 
+                : (isDark ? '#AAAAAA' : '#616161') 
+            }
           ]}>
             {connectionStatus}
           </Text>
@@ -238,8 +266,8 @@ export default function HomeScreen() {
             ListEmptyComponent={() => (
               !isScanning && (
                 <View style={styles.emptyState}>
-                  <Ionicons name="bluetooth-outline" size={64} color="#E0E0E0" />
-                  <Text style={styles.emptyText}>Tap scan to find your device</Text>
+                  <Ionicons name="bluetooth-outline" size={64} color={isDark ? "#555555" : "#E0E0E0"} />
+                  <Text style={[styles.emptyText, isDark && darkStyles.emptyText]}>Tap scan to find your device</Text>
                 </View>
               )
             )}
@@ -248,28 +276,28 @@ export default function HomeScreen() {
         </View>
       ) : (
         <Animated.View entering={FadeIn} style={styles.controlPanel}>
-          <View style={styles.card}>
+          <View style={[styles.card, isDark && darkStyles.card]}>
             <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Communication</Text>
+              <Text style={[styles.cardTitle, isDark && darkStyles.cardTitle]}>Communication</Text>
               <TouchableOpacity onPress={disconnectDevice}>
                 <Text style={styles.disconnectText}>Disconnect</Text>
               </TouchableOpacity>
             </View>
 
             <TextInput
-              style={styles.input}
+              style={[styles.input, isDark && darkStyles.input]}
               placeholder="Enter text to convert..."
               value={inputText}
               onChangeText={setInputText}
               maxLength={20}
-              placeholderTextColor="#BDBDBD"
+              placeholderTextColor={isDark ? "#888888" : "#BDBDBD"}
               editable={!isSending}
             />
 
             <TouchableOpacity 
               style={[
                 styles.sendButton, 
-                (!inputText || isSending) && styles.disabledButton
+                (!inputText || isSending) ? (isDark ? darkStyles.disabledButton : styles.disabledButton) : null
               ]} 
               onPress={sendTextToGlove}
               disabled={!inputText || isSending}
@@ -284,7 +312,7 @@ export default function HomeScreen() {
               )}
             </TouchableOpacity>
 
-            <Text style={styles.hint}>
+            <Text style={[styles.hint, isDark && darkStyles.hint]}>
               The glove will vibrate each letter in Braille pattern.
             </Text>
           </View>
@@ -454,6 +482,47 @@ const styles = StyleSheet.create({
     color: '#ADB5BD',
     fontSize: 13,
     lineHeight: 18,
+  }
+});
+
+const darkStyles = StyleSheet.create({
+  container: {
+    backgroundColor: '#121212',
+  },
+  title: {
+    color: '#FFFFFF',
+  },
+  deviceCard: {
+    backgroundColor: '#1C1C1E',
+    borderColor: '#2C2C2E',
+  },
+  deviceName: {
+    color: '#E5E5EA',
+  },
+  deviceId: {
+    color: '#8E8E93',
+  },
+  emptyText: {
+    color: '#8E8E93',
+  },
+  card: {
+    backgroundColor: '#1C1C1E',
+    borderColor: '#2C2C2E',
+  },
+  cardTitle: {
+    color: '#FFFFFF',
+  },
+  input: {
+    backgroundColor: '#2C2C2E',
+    color: '#FFFFFF',
+    borderColor: '#3A3A3C',
+  },
+  disabledButton: {
+    backgroundColor: '#2E7D32',
+    opacity: 0.6,
+  },
+  hint: {
+    color: '#8E8E93',
   }
 });
 

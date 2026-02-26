@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   scanButton: { 
-    backgroundColor: '#007BFF', 
+    backgroundColor: '#050611ff', 
     height: 56,
     borderRadius: 16, 
     flexDirection: 'row',
@@ -491,6 +491,9 @@ const darkStyles = StyleSheet.create({
   },
   title: {
     color: '#FFFFFF',
+  },
+  scanButton: { 
+    backgroundColor: '#c5c8ecff', 
   },
   deviceCard: {
     backgroundColor: '#1C1C1E',

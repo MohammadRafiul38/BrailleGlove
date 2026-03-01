@@ -3,7 +3,7 @@
 // RX on Pin 2 (Connect to HM-10 TX), TX on Pin 3 (Connect to HM-10 RX)
 SoftwareSerial BLE(2, 3); 
 
-// The pins connected to the 6 vibration motors
+// The pins connected to the 6 vibration motors 
 // (Added the [6] to define the array size)
 int motorPins[6] = {4, 5, 6, 7, 8, 9};
 
@@ -60,26 +60,30 @@ void loop() {
     if (receivedChar >= 'a' && receivedChar <= 'z') {
       int letterIndex = receivedChar - 'a'; // Find index (0 for 'a', 25 for 'z')
       
-      Serial.print("Received: ");
+      Serial.print("Vibrating for: ");
       Serial.println(receivedChar);
 
-      // Turn on the correct motors based on the Braille map
-      // Added [letterIndex][i] and [i] to properly read the matrix
-      for (int i = 0; i < 6; i++) {
-        if (brailleMap[letterIndex][i] == 1) {
-          digitalWrite(motorPins[i], HIGH);
-        } else {
+      // --- NEW PULSE LOGIC ---
+      // Instead of one long blast, we vibrate 3 times quickly
+      for (int pulse = 0; pulse < 3; pulse++) {
+        
+        // Step A: Turn on the motors for this letter
+        for (int i = 0; i < 6; i++) {
+          if (brailleMap[letterIndex][i] == 1) {
+            digitalWrite(motorPins[i], HIGH);
+          }
+        }
+        
+        delay(150); // Pulse duration (on)
+
+        // Step B: Turn all motors off for a brief rest
+        for (int i = 0; i < 6; i++) {
           digitalWrite(motorPins[i], LOW);
         }
+        
+        delay(100); // Gap between pulses (off)
       }
-      
-      // Vibrate for 1 second so the user can feel it
-      delay(1000); 
-      
-      // Turn all motors off
-      for (int i = 0; i < 6; i++) {
-        digitalWrite(motorPins[i], LOW);
-      }
+      // -----------------------
     }
   }
 }
